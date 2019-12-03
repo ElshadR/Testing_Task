@@ -1,0 +1,8 @@
+{
+  "Tm": 10,
+  "Td": 20,
+  "CompletedRequestInterval": {
+    "min": 2,
+    "max": 4
+  }
+}

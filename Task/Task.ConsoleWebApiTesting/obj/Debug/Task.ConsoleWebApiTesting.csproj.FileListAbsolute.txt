@@ -1,0 +1,11 @@
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\bin\Debug\Task.ConsoleWebApiTesting.exe.config
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\bin\Debug\Task.ConsoleWebApiTesting.exe
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\bin\Debug\Task.ConsoleWebApiTesting.pdb
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\obj\Debug\Task.ConsoleWebApiTesting.exe
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\obj\Debug\Task.ConsoleWebApiTesting.pdb
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\bin\Debug\Task.RequestLibrary.dll
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\bin\Debug\RestSharp.dll
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\bin\Debug\Task.RequestLibrary.pdb
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\bin\Debug\RestSharp.xml
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\obj\Debug\Task.ConsoleWebApiTesting.csprojAssemblyReference.cache
+C:\Users\User\source\repos\Task\Task.ConsoleWebApiTesting\obj\Debug\Task.ConsoleWebApiTesting.csproj.CopyComplete
