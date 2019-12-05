@@ -20,6 +20,7 @@ namespace Task.Api.Models
         public string NickName { get; set; }
 
         public bool IsBusy { get; set; }
+        public bool IsLogin { get; set; }
 
         public Position Position { get; set; }
 

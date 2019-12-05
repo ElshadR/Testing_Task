@@ -51,9 +51,13 @@
     <Compile Include="Core\RequestSender.cs" />
     <Compile Include="Core\Services\ProcessService.cs" />
     <Compile Include="Core\Services\WorkerService.cs" />
+    <Compile Include="Models\AnswerModel.cs" />
+    <Compile Include="Models\Login.cs" />
     <Compile Include="Models\PositionType.cs" />
     <Compile Include="Models\QueryModel.cs" />
     <Compile Include="Models\QueryStatusType.cs" />
+    <Compile Include="Models\Role.cs" />
+    <Compile Include="Models\SettingModel.cs" />
     <Compile Include="Models\WorkerModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -60,7 +60,39 @@ namespace Task.RequestLibrary.Core
 
                 var response = _client.Execute<T>(request);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.Created)
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                    return new RequestResult<T>
+                    {
+                        IsSucced = true,
+                        Data = response.Data
+                    };
+                else
+                    return new RequestResult<T>
+                    {
+                        IsSucced = false,
+                        ErrorMessage = response.ErrorMessage
+                    };
+            }
+            catch (Exception ex)
+            {
+                return new RequestResult<T>
+                {
+                    IsSucced = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        } 
+        public async Task<RequestResult<T>> PutResponse<T>(string url, Action<IRestRequest> action = null) where T : new()
+        {
+            try
+            {
+                var request = new RestRequest(url, Method.PUT);
+
+                action?.Invoke(request);
+
+                var response = _client.Execute<T>(request);
+
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     return new RequestResult<T>
                     {
                         IsSucced = true,

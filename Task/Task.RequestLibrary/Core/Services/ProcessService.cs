@@ -26,34 +26,93 @@ namespace Task.RequestLibrary.Core.Services
             });
         }
 
+        public async Task<RequestResult<AnswerModel>> AnswerQuery(AnswerModel answer)
+        {
+            return await _requestSender.PutResponse<AnswerModel>("api/process/answerquery", request =>
+            {
+                request.RequestFormat = DataFormat.Json;
+                request.AddBody(answer);
+            });
+        }
+
         public async Task<RequestResult<List<WorkerModel>>> BusyWorkers()
         {
             return await _requestSender.GetResponse<List<WorkerModel>>("api/process/busyworkers");
         }
 
-        public Task<RequestResult<QueryModel>> CancelQuery(int id)
+        public async Task<RequestResult<QueryModel>> CancelQuery(int id)
         {
-            throw new NotImplementedException();
+            return await _requestSender.PutResponse<QueryModel>("api/process/CancelQuery", request =>
+            {
+                request.AddQueryParameter("id", id.ToString());
+            });
         }
 
-        public Task<RequestResult<List<QueryModel>>> ComplitedQueries()
+        public async Task<RequestResult<List<QueryModel>>> ComplitedQueries()
         {
-            throw new NotImplementedException();
+            return await _requestSender.GetResponse<List<QueryModel>>("api/process/complitedqueries");
         }
 
-        public Task<RequestResult<QueryModel>> GetQuery()
+        public async Task<RequestResult<QueryModel>> GetQuery(int workerId)
         {
-            throw new NotImplementedException();
+            return await _requestSender.GetResponse<QueryModel>("api/process/getquery",request=>
+            {
+                request.AddParameter("workerId", workerId);
+            });
         }
 
-        public Task<RequestResult<List<QueryModel>>> PendingQuery()
+        public async Task<RequestResult<Login>> Login(Login login)
         {
-            throw new NotImplementedException();
+            return await _requestSender.PostResponse<Login>("api/process/login",request=>
+            {
+                request.RequestFormat = DataFormat.Json;
+                request.AddBody(login);
+            });
         }
 
-        public Task<RequestResult<QueryModel>> StatusQuery(int id)
+        public async Task<RequestResult<List<QueryModel>>> PendingQuery()
         {
-            throw new NotImplementedException();
+            return await _requestSender.GetResponse<List<QueryModel>>("api/process/pendingquery");
+        }
+
+        public async Task<RequestResult<QueryModel>> StatusQuery(int id)
+        {
+            return await _requestSender.GetResponse<QueryModel>("api/process/statusquery",request=>
+            {
+                request.AddQueryParameter("id", id.ToString());
+            });
+        }
+        public async Task<RequestResult<int>> CountPendingByQuery(int id)
+        {
+            return await _requestSender.GetResponse<int>("api/process/CountPendingByQuery", request=>
+            {
+                request.AddQueryParameter("id", id.ToString());
+            });
+        }
+
+        public async Task<RequestResult<WorkerModel>> IsBusyWorker(int workerId)
+        {
+            return await _requestSender.GetResponse<WorkerModel>("api/process/IsBusyWorker", request =>
+            {
+                request.AddQueryParameter("workerId", workerId.ToString());
+            });
+        }
+
+        public async Task<RequestResult<List<QueryModel>>> PendingQueryByUser(int userId)
+        {
+            return await _requestSender.GetResponse<List<QueryModel>>("api/process/PendingQueryByUser", request =>
+            {
+                request.AddQueryParameter("userId", userId.ToString());
+            });
+        }
+
+        public async Task<RequestResult<SettingModel>> Settings(SettingModel setting)
+        {
+            return await _requestSender.PutResponse<SettingModel>("api/process/Settings", request =>
+            {
+                request.RequestFormat = DataFormat.Json;
+                request.AddBody(setting);
+            });
         }
     }
 }

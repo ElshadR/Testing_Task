@@ -8,6 +8,9 @@ namespace Task.Api
 {
     public static class WebApiConfig
     {
+        
+        public static string UrlPrefix { get { return "api"; } }
+        public static string UrlPrefixRelative { get { return "~/api"; } }
         public static void Register(HttpConfiguration config)
         {
             // Web API configuration and services
@@ -18,9 +21,9 @@ namespace Task.Api
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional }
+                 name: "DefaultApi",
+                 routeTemplate: WebApiConfig.UrlPrefix + "/{controller}/{id}",
+                 defaults: new { id = RouteParameter.Optional }
             );
         }
     }

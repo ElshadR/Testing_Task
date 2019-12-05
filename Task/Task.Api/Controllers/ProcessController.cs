@@ -1,11 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Hosting;
 using System.Web.Http;
 using Task.Api.Models;
 
@@ -15,7 +19,8 @@ namespace Task.Api.Controllers
     [Route("{action}/{id?}", Name = "ProcessRoute")]
     public class ProcessController : ApiController
     {
-        [HttpGet]
+        static object locker = new object();
+        [HttpPost]
         public async Task<IHttpActionResult> Login([FromBody] Login login)
         {
             try
@@ -27,7 +32,9 @@ namespace Task.Api.Controllers
                     if (worker != null)
                     {
                         login.Role = Role.Worker;
-                        HttpContext.Current.Session["Login"] = login;
+                        login.Id = worker.Id;
+                        worker.IsLogin = true;
+                        await db.SaveChangesAsync();
                         return Ok(login);
                     }
                     else
@@ -36,7 +43,7 @@ namespace Task.Api.Controllers
                         if (user != null)
                         {
                             login.Role = Role.User;
-                            HttpContext.Current.Session["Login"] = login;
+                            login.Id = user.Id;
                             return Ok(login);
                         }
                     }
@@ -58,19 +65,51 @@ namespace Task.Api.Controllers
                 {
                     var cQueries = await db.Queries.Where(q => q.QueryStatus == QueryStatus.Pending).ToListAsync();
                     
-                    
                     return Ok(cQueries);
                 }
             }
             catch (Exception ex)
             {
-                return NotFound();
+                return BadRequest();
             }
         }
         [HttpGet]
         public async Task<IHttpActionResult> PendingQuery()
         {
-            throw new Exception();
+            try
+            {
+                using (TaskDbContext db = new TaskDbContext())
+                {
+                    var queries = await db.Queries.Where(q => q.QueryStatus==QueryStatus.Pending).ToListAsync();
+
+                    if (queries.Count != 0)
+                        return Ok(queries);
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+            return NotFound();
+        }
+        [HttpGet]
+        public async Task<IHttpActionResult> PendingQueryByUser(int userId)
+        {
+            try
+            {
+                using (TaskDbContext db = new TaskDbContext())
+                {
+                    var queries = await db.Queries.Where(q => userId == q.UserId).ToListAsync();
+
+                    if (queries.Count != 0)
+                        return Ok(queries);
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+            return NotFound();
         }
         [HttpGet]
         public async Task<IHttpActionResult> BusyWorkers()
@@ -92,47 +131,238 @@ namespace Task.Api.Controllers
             return NotFound();
 
         }
+        [HttpGet]
+        public async Task<IHttpActionResult> IsBusyWorker(int workerId)
+        {
+            try
+            {
+                using (TaskDbContext db = new TaskDbContext())
+                {
+                    var worker = await db.Workers.FirstOrDefaultAsync(q =>  q.Id == workerId);
+
+                    if (worker != null)
+                        return Ok(worker);
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+            return NotFound();
+
+        }
         [HttpPost]
         public async Task<IHttpActionResult> AddQuery([FromBody] Query query)
         {
-            if (query == null)
+            lock (locker)
+            {
+                if (query == null)
+                    return StatusCode(HttpStatusCode.NoContent);
+
+                try
+                {
+                    using (TaskDbContext db = new TaskDbContext())
+                    {
+
+                        //var login = JsonConvert.DeserializeObject<Login>(HttpContext.Current.Session["login"].ToString());
+                        db.Queries.Add(query);
+
+                        db.SaveChanges();
+                    }
+                    return Ok(query);
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest();
+                }
+            }
+        }
+
+        [HttpGet]
+        public async Task<IHttpActionResult> GetQuery(int workerId)
+        {
+            try
+            {
+                lock (locker)
+                {
+                    using (TaskDbContext db = new TaskDbContext())
+                    {
+
+                        var worker =  db.Workers.FirstOrDefault(x => x.Id == workerId && !x.IsBusy && x.IsLogin);
+                        if (worker != null)
+                        {
+                            var query =  db.Queries.OrderBy(q => q.CreatedAt).FirstOrDefault(q => q.QueryStatus == QueryStatus.Pending);
+
+                            if (query == null)
+                                return NotFound();
+                            var path = HostingEnvironment.MapPath("~/Models/settings.json");
+                            string json = File.ReadAllText(path);
+                            dynamic jsonObj = JsonConvert.DeserializeObject(json);
+                            int tm = jsonObj["Tm"];
+                            int td = jsonObj["Td"];
+
+                            switch (worker.Position)
+                            {
+                                case Position.Operator:
+                                    query.StartedAt = DateTime.Now;
+                                    query.QueryStatus = QueryStatus.Activ;
+                                    query.WorkerId = worker.Id;
+                                    worker.IsBusy = true;
+                                    db.SaveChanges();
+                                    return Ok(query);
+                                case Position.Menecer:
+                                    // Tm vaxtdan sonra
+                                    if (DateTime.Now.Subtract(query.CreatedAt) > TimeSpan.FromMinutes(tm))
+                                    {
+                                        query.StartedAt = DateTime.Now;
+                                        query.QueryStatus = QueryStatus.Activ;
+                                        query.WorkerId = worker.Id;
+                                        worker.IsBusy = true;
+                                        db.SaveChanges();
+                                        return Ok(query);
+                                    }
+                                    break;
+                                case Position.Director:
+                                    if (DateTime.Now.Subtract(query.CreatedAt) > TimeSpan.FromMinutes(td))
+                                    {
+                                        query.StartedAt = DateTime.Now;
+                                        query.QueryStatus = QueryStatus.Activ;
+                                        query.WorkerId = worker.Id;
+                                        worker.IsBusy = true;
+                                        db.SaveChanges();
+                                        return Ok(query);
+                                    }
+                                    break;
+                            }
+                        }
+                        return NotFound();
+                    }
+                }
+              
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
+        [HttpGet]
+        public async Task<IHttpActionResult> StatusQuery(int id)
+        {
+            try
+            {
+                using (TaskDbContext db = new TaskDbContext())
+                {
+                    var query = await db.Queries.FirstOrDefaultAsync(q => q.Id == id);
+
+                    if (query == null)
+                        return NotFound();
+
+                    return Ok(query.QueryStatus);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
+        [HttpPut]
+        public async Task<IHttpActionResult> AnswerQuery([FromBody] AnswerModel answer)
+        {
+            if (answer == null)
                 return StatusCode(HttpStatusCode.NoContent);
 
             try
             {
                 using (TaskDbContext db = new TaskDbContext())
                 {
-                    db.Queries.Add(query);
+                    var query = await db.Queries.FirstOrDefaultAsync(q => q.Id == answer.Id);
+
+                    if (query == null)
+                        return NotFound();
+
+                    query.Answer = answer.Text;
+
+                    query.QueryStatus = QueryStatus.End;
+                    query.EndedAt = DateTime.Now;
+                    var worker = await db.Workers.FirstOrDefaultAsync(w => w.Id == query.WorkerId);
+                    worker.IsBusy = false;
                     await db.SaveChangesAsync();
+
+                    return Ok(query);
                 }
-                return StatusCode(HttpStatusCode.Created);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return BadRequest();
             }
         }
-        [HttpGet]
-        public async Task<IHttpActionResult> GetQuery()
-        {
-            //Burada biz her bir isci ucun bos sorgulari veririk hansiki bir alqoritmnen isliyir,
-            //her bir sorgu verildikde burdan hemin anda status deyisdirilir activ olur;
-            //eger query pending den elave bir statusdadirsa onda o verile bilmir ancaq statusu pending olsa.
-
-            throw new Exception();
-        }
-        [HttpGet]
-        public async Task<IHttpActionResult> StatusQuery(int id)
-        {
-            //buradan biz her bir querinin statusunu oyrene bilirik
-            throw new Exception();
-        }
         [HttpPut]
         public async Task<IHttpActionResult> CancelQuery(int id)
         {
-            //burada ise sorgu kime ayiddirse ancaq o hemin sorgunu sile geri qytara bilir.
-            throw new Exception();
+            try
+            {
+                using (TaskDbContext db = new TaskDbContext())
+                {
+                    var query = await db.Queries.FirstOrDefaultAsync(q => q.Id == id && (q.QueryStatus==QueryStatus.Pending));
+
+                    if (query == null)
+                        return NotFound();
+                    query.QueryStatus = QueryStatus.Cance;
+                    await db.SaveChangesAsync();
+
+                    return Ok(query);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
-        
+        [HttpPut]
+        public async Task<IHttpActionResult> Settings([FromBody] SettingModel setting)
+        {
+            try
+            {
+                var path = HostingEnvironment.MapPath("~/Models/settings.json");
+                string json = File.ReadAllText(path);
+                dynamic jsonObj = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+                int tm = jsonObj["Tm"];
+                int td = jsonObj["Td"];
+                if (tm!=setting.Tm)
+                    jsonObj["Tm"] = setting.Tm;
+                if(td!=setting.Td)
+                    jsonObj["Td"] = setting.Td;
+                string output = Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj, Newtonsoft.Json.Formatting.Indented);
+                File.WriteAllText(path, output);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpGet]
+        public async Task<IHttpActionResult> CountPendingByQuery(int id)
+        {
+            try
+            {
+                using (TaskDbContext db = new TaskDbContext())
+                {
+                    var query = await db.Queries.FirstOrDefaultAsync(q => q.Id == id && q.QueryStatus == QueryStatus.Pending);
+                    
+                    if (query == null)
+                        return NotFound();
+                    var count = await db.Queries.Where(q=>q.QueryStatus == QueryStatus.Pending).CountAsync(q => q.CreatedAt < query.CreatedAt);
+
+                    return Ok(count);
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+        }
+
     }
 }

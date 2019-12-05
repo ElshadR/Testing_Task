@@ -6,3 +6,11 @@ C:\Users\User\source\repos\Task\Task.RequestLibrary\obj\Debug\Task.RequestLibrar
 C:\Users\User\source\repos\Task\Task.RequestLibrary\obj\Debug\Task.RequestLibrary.dll
 C:\Users\User\source\repos\Task\Task.RequestLibrary\obj\Debug\Task.RequestLibrary.pdb
 C:\Users\User\source\repos\Task\Task.RequestLibrary\obj\Debug\Task.RequestLibrary.csprojAssemblyReference.cache
+C:\Users\User\Desktop\New folder (2)\Task\Task.RequestLibrary\bin\Debug\Task.RequestLibrary.dll
+C:\Users\User\Desktop\New folder (2)\Task\Task.RequestLibrary\bin\Debug\Task.RequestLibrary.pdb
+C:\Users\User\Desktop\New folder (2)\Task\Task.RequestLibrary\bin\Debug\RestSharp.dll
+C:\Users\User\Desktop\New folder (2)\Task\Task.RequestLibrary\bin\Debug\RestSharp.xml
+C:\Users\User\Desktop\New folder (2)\Task\Task.RequestLibrary\obj\Debug\Task.RequestLibrary.csprojAssemblyReference.cache
+C:\Users\User\Desktop\New folder (2)\Task\Task.RequestLibrary\obj\Debug\Task.RequestLibrary.csproj.CopyComplete
+C:\Users\User\Desktop\New folder (2)\Task\Task.RequestLibrary\obj\Debug\Task.RequestLibrary.dll
+C:\Users\User\Desktop\New folder (2)\Task\Task.RequestLibrary\obj\Debug\Task.RequestLibrary.pdb
